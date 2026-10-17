@@ -59,6 +59,32 @@
   a.lnk{color:#fff;text-decoration:none;font-size:13px;padding:7px 12px;border-radius:8px;background:var(--red)}
   a.lnk.alt{background:transparent;border:1px solid var(--line);color:var(--text)}
   .note{color:var(--muted);font-size:12px;margin-top:30px;line-height:1.6}
+  .loc{flex:1 1 240px;min-width:0;display:flex;align-items:center;gap:8px;background:#0b1838;border:1px solid var(--line);
+    color:var(--text);padding:12px 14px;border-radius:10px;font-size:16px;cursor:pointer;text-align:left}
+  .loc:hover{border-color:var(--red)}
+  .loc #locLabel{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .loc .chg{background:var(--red);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+  .btn.full{width:100%;margin-top:10px}
+  .modal{position:fixed;inset:0;background:rgba(3,8,22,.75);display:flex;align-items:center;justify-content:center;padding:16px;z-index:2000}
+  .sheet{background:var(--bg2);border:1px solid var(--line);border-radius:16px;width:100%;max-width:560px;max-height:calc(100vh - 32px);
+    overflow:auto;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .mhead h3{margin:0;font-size:20px}
+  .x{background:none;border:0;color:var(--muted);font-size:20px;cursor:pointer}
+  .msearch{display:flex;gap:8px}
+  .msearch input{flex:1;min-width:0;background:#0b1838;border:1px solid var(--line);color:var(--text);padding:12px 14px;border-radius:10px;font-size:16px}
+  .cands{display:flex;flex-direction:column;gap:6px;margin:12px 0;max-height:200px;overflow:auto}
+  .cands .lbl{color:var(--muted);font-size:12px;margin:2px 2px 0}
+  .cand{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;text-align:left;color:var(--text);font-size:14px}
+  .cand small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  .cand:hover,.cand.on{border-color:var(--red)}
+  .cand.on{background:#2a1f45}
+  #pmap{height:240px;border-radius:12px;border:1px solid var(--line)}
+  .hint{color:var(--muted);font-size:12px;margin:6px 2px 0}
+  .mfoot{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap}
+  .sel{flex:1;min-width:0}
+  .sel small{display:block;color:var(--muted);font-size:12px}
+  .sel span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
   .dark-tiles{filter:invert(1) hue-rotate(200deg) brightness(.85) contrast(.9) saturate(.6)}
   .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#15275a;color:var(--text)}
 </style>
@@ -70,16 +96,16 @@
     <p>거주지를 입력하면 주변 음식점과 볼거리를 모아서, 원하는 종류의 음식을 추천해드려요.</p>
   </header>
 
-  <form class="search" id="form">
-    <input id="addr" placeholder="예: 서울 마포구 연남동, 부산 해운대구" autocomplete="off" required>
+  <div class="search">
+    <button class="loc" id="locBtn" type="button"><span class="pin">📍</span><span id="locLabel">위치를 선택하세요</span><span class="chg">변경</span></button>
     <select id="radius">
       <option value="500">반경 500m</option>
       <option value="1000" selected>반경 1km</option>
       <option value="2000">반경 2km</option>
       <option value="3000">반경 3km</option>
     </select>
-    <button class="btn" id="go" type="submit">🔍 동네 탐색</button>
-  </form>
+    <button class="btn" id="go" type="button">🔍 동네 탐색</button>
+  </div>
   <div class="status" id="status"></div>
 
   <section id="result" class="hidden">
@@ -104,6 +130,24 @@
 
   <p class="note">데이터: OpenStreetMap(Nominatim·Overpass API). 등록된 정보만 표시되며, 음식 종류는 태그와 상호명으로 자동 분류됩니다.
     영업 여부·평점은 카카오맵/네이버지도 링크에서 확인하세요.</p>
+</div>
+
+<div class="modal hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+  <div class="sheet">
+    <div class="mhead"><h3 id="mtitle">📍 위치 선택</h3><button class="x" id="mclose" type="button" aria-label="닫기">✕</button></div>
+    <form class="msearch" id="mform">
+      <input id="maddr" placeholder="동네·주소·역 이름 (예: 강남역, 해운대구 우동)" autocomplete="off">
+      <button class="btn" type="submit">검색</button>
+    </form>
+    <button class="btn ghost full" id="gps" type="button">📡 현재 내 위치 사용</button>
+    <div class="cands" id="cands"></div>
+    <div id="pmap"></div>
+    <div class="hint">💡 지도를 눌러서 위치를 직접 찍을 수도 있어요.</div>
+    <div class="mfoot">
+      <div class="sel"><small>선택한 위치</small><span id="pickLabel">아직 없음</span></div>
+      <button class="btn" id="confirm" type="button" disabled>이 위치로 탐색</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -152,13 +196,64 @@ function sightType(t){
   return "관광 명소";
 }
 
-async function geocode(q){
-  const u="https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=kr&accept-language=ko&q="+encodeURIComponent(q);
-  const r=await fetch(u,{headers:{"Accept":"application/json"}});
-  if(!r.ok) throw new Error("주소 검색 실패 ("+r.status+")");
-  const j=await r.json();
-  if(!j.length) throw new Error("주소를 찾지 못했어요. 시·구·동 단위로 다시 입력해 보세요.");
-  return {lat:+j[0].lat, lon:+j[0].lon, label:j[0].display_name};
+const NOMI="https://nominatim.openstreetmap.org";
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+// "강남역, 강남대로, 역삼1동, 강남구, 서울특별시, 06xxx, 대한민국" → "서울특별시 강남구 역삼1동 강남역"
+function shortLabel(s){
+  const p=s.split(",").map(x=>x.trim()).filter(x=>x&&x!=="대한민국"&&!/^\d{5}$/.test(x));
+  if(!p.length) return s;
+  const area=p.slice(1).reverse().filter(x=>!/(로|길)(\s?\d+)?$/.test(x)).slice(0,3);
+  return [...area,p[0]].filter((x,i,a)=>a.indexOf(x)===i).join(" ");
+}
+
+async function fetchJSON(url,opt={},ms=25000){
+  const ac=new AbortController(), t=setTimeout(()=>ac.abort(),ms);
+  try{
+    const r=await fetch(url,{...opt,signal:ac.signal});
+    if(!r.ok) throw new Error("서버 응답 "+r.status);
+    return await r.json();
+  }finally{ clearTimeout(t); }
+}
+
+async function searchLocations(q){
+  const j=await fetchJSON(`${NOMI}/search?format=jsonv2&limit=8&countrycodes=kr&accept-language=ko&q=${encodeURIComponent(q)}`);
+  return j.map(x=>({lat:+x.lat,lon:+x.lon,name:x.name||q,label:shortLabel(x.display_name)}))
+    .filter((x,i,a)=>a.findIndex(y=>y.label===x.label)===i);
+}
+
+async function reverseLabel(lat,lon){
+  try{
+    const j=await fetchJSON(`${NOMI}/reverse?format=jsonv2&zoom=16&accept-language=ko&lat=${lat}&lon=${lon}`,{},10000);
+    return shortLabel(j.display_name||"");
+  }catch(_){ return `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
+}
+
+// 결과 캐시 (6시간) — 데이터 서버가 불안정해도 한 번 본 동네는 바로 다시 열림
+const CACHE_TTL=6*3600e3;
+function cacheKey(lat,lon,R){ return `matjip-cache:${lat.toFixed(3)},${lon.toFixed(3)},${R}`; }
+function cacheGet(k){ try{ const v=JSON.parse(localStorage.getItem(k)); return v&&Date.now()-v.t<CACHE_TTL?v.els:null; }catch(_){ return null; } }
+function cacheSet(k,els){ try{ localStorage.setItem(k,JSON.stringify({t:Date.now(),els})); }catch(_){} }
+
+// Overpass가 모두 실패할 때 쓰는 백업: Nominatim POI 검색 (종류별 최대 40곳)
+async function nominatimPlaces(lat,lon,R){
+  const dLat=R/111320, dLon=R/(111320*Math.cos(lat*Math.PI/180));
+  const box=[lon-dLon,lat+dLat,lon+dLon,lat-dLat].join(",");
+  const kinds=[["amenity","restaurant"],["amenity","cafe"],["amenity","fast_food"],["amenity","bar"],
+    ["tourism","attraction"],["tourism","museum"],["leisure","park"]];
+  const out=[];
+  for(const [k,v] of kinds){
+    try{
+      const j=await fetchJSON(`${NOMI}/search?format=jsonv2&amenity=${v}&viewbox=${box}&bounded=1&limit=40&accept-language=ko&extratags=1&namedetails=1`,{},12000);
+      for(const x of j){
+        const nd=x.namedetails||{}, ex=x.extratags||{};
+        if(x.category!==k) continue;
+        out.push({lat:+x.lat,lon:+x.lon,tags:{...ex,name:nd["name:ko"]||nd.name||x.name,[x.category]:x.type}});
+      }
+    }catch(_){}
+    await sleep(1100); // Nominatim 이용 정책: 초당 1회
+  }
+  if(!out.length) throw new Error("데이터 서버가 모두 혼잡해요. 잠시 후 다시 시도해 주세요.");
+  return out.filter(e=>dist({lat,lon},e)<=R);
 }
 
 async function overpass(lat,lon,R){
@@ -169,15 +264,14 @@ async function overpass(lat,lon,R){
     (nwr${a}["tourism"~"^(attraction|museum|gallery|viewpoint|theme_park|zoo|aquarium)$"]["name"];
      nwr${a}["leisure"="park"]["name"];
      nwr${a}["historic"]["name"];);out center 150;`;
-  let lastErr;
-  for(const ep of OVERPASS){
-    try{
-      const r=await fetch(ep,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
-      if(!r.ok) throw new Error("데이터 서버 응답 "+r.status);
-      return (await r.json()).elements;
-    }catch(e){ lastErr=e; }
-  }
-  throw lastErr;
+  // 모든 서버에 동시에 요청해서 가장 먼저 성공한 응답을 사용
+  try{
+    return await Promise.any(OVERPASS.map(async ep=>{
+      const j=await fetchJSON(ep,{method:"POST",body:"data="+encodeURIComponent(q),headers:{"Content-Type":"application/x-www-form-urlencoded"}},20000);
+      if(!j.elements?.length) throw new Error("empty");
+      return j.elements.map(el=>({lat:el.lat??el.center?.lat,lon:el.lon??el.center?.lon,tags:el.tags||{}}));
+    }));
+  }catch(_){ return null; }
 }
 
 function initMap(){
@@ -246,19 +340,25 @@ function recommend(){
   map.setView([p.lat,p.lon],16); L.popup().setLatLng([p.lat,p.lon]).setContent(`<b>${esc(p.name)}</b>`).openOn(map);
 }
 
-$("#form").addEventListener("submit",async e=>{
-  e.preventDefault();
-  const q=$("#addr").value.trim(), R=+$("#radius").value; if(!q) return;
-  try{ localStorage.setItem("matjip-addr",q); }catch(_){}
+async function explore(){
+  if(!center){ openPicker(); return; }
+  const R=+$("#radius").value;
   $("#go").disabled=true;
   try{
-    setStatus("📍 주소를 찾는 중...");
-    center=await geocode(q);
-    setStatus("🔎 주변 음식점·볼거리를 수집하는 중... (최대 20초)");
-    const els=await overpass(center.lat,center.lon,R);
+    const key=cacheKey(center.lat,center.lon,R);
+    let els=cacheGet(key);
+    if(!els){
+      setStatus("🔎 주변 음식점·볼거리를 수집하는 중... (최대 20초)");
+      els=await overpass(center.lat,center.lon,R);
+      if(!els){
+        setStatus("⏳ 메인 데이터 서버가 혼잡해서 백업 서버로 수집 중... (약 10초)");
+        els=await nominatimPlaces(center.lat,center.lon,R);
+      }
+      cacheSet(key,els);
+    }
     const seen=new Set(); foods=[]; sights=[];
     for(const el of els){
-      const t=el.tags||{}, lat=el.lat??el.center?.lat, lon=el.lon??el.center?.lon;
+      const t=el.tags, lat=el.lat, lon=el.lon;
       if(!t.name||lat==null) continue;
       const key=t.name+"|"+lat.toFixed(4)+lon.toFixed(4); if(seen.has(key)) continue; seen.add(key);
       const p={name:t["name:ko"]||t.name,lat,lon,d:dist(center,{lat,lon})};
@@ -272,11 +372,89 @@ $("#form").addEventListener("submit",async e=>{
     if(homeMarker) homeMarker.remove();
     homeMarker=L.marker([center.lat,center.lon],{icon:dot("#4ea8ff")}).bindPopup("🏠 기준 위치").addTo(map);
     map.setView([center.lat,center.lon],R<=1000?15:14);
-    setStatus(`✅ ${center.label.split(",").slice(0,3).join(",")} 주변 — 음식점 ${foods.length}곳, 볼거리 ${sights.length}곳`);
+    setStatus(`✅ ${center.label} 주변 — 음식점 ${foods.length}곳, 볼거리 ${sights.length}곳`);
     renderCats(); renderSights(); renderFoods();
   }catch(err){
-    setStatus("⚠️ "+(err.message||"오류가 발생했어요. 잠시 후 다시 시도해 주세요."),true);
+    setStatus("⚠️ "+(err.name==="AbortError"?"서버 응답이 너무 늦어요. 다시 시도해 주세요.":err.message||"오류가 발생했어요. 잠시 후 다시 시도해 주세요."),true);
   }finally{ $("#go").disabled=false; }
+}
+$("#go").addEventListener("click",explore);
+$("#radius").addEventListener("change",()=>{ if(foods.length) explore(); });
+
+/* ---------- 위치 선택 창 ---------- */
+let pmap=null, pmarker=null, pending=null, cands=[];
+function loadRecent(){ try{ return JSON.parse(localStorage.getItem("matjip-recent"))||[]; }catch(_){ return []; } }
+function saveRecent(loc){
+  const list=[loc,...loadRecent().filter(x=>x.label!==loc.label)].slice(0,5);
+  try{ localStorage.setItem("matjip-recent",JSON.stringify(list)); }catch(_){}
+}
+function setPending(loc,zoom){
+  pending=loc;
+  $("#pickLabel").textContent=loc.label;
+  $("#confirm").disabled=false;
+  if(pmarker) pmarker.setLatLng([loc.lat,loc.lon]); else pmarker=L.marker([loc.lat,loc.lon],{icon:dot("#e63946")}).addTo(pmap);
+  pmap.setView([loc.lat,loc.lon],zoom||Math.max(pmap.getZoom(),15));
+}
+function renderCands(list,title){
+  cands=list;
+  $("#cands").innerHTML=list.length?`<div class="lbl">${title}</div>`+list.map((c,i)=>
+    `<button class="cand ${pending&&pending.label===c.label?"on":""}" data-k="${i}" type="button">${esc(c.name)}<small>${esc(c.label)}</small></button>`).join(""):"";
+}
+function openPicker(){
+  $("#modal").classList.remove("hidden");
+  if(!pmap){
+    pmap=L.map("pmap");
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:'&copy; OpenStreetMap',maxZoom:19,className:"dark-tiles"}).addTo(pmap);
+    pmap.setView(center?[center.lat,center.lon]:[37.5665,126.978],center?15:11);
+    pmap.on("click",async e=>{
+      const {lat,lng}=e.latlng;
+      setPending({lat,lon:lng,name:"지도에서 선택",label:"주소 확인 중..."});
+      const label=await reverseLabel(lat,lng);
+      if(pending&&pending.lat===lat) setPending({lat,lon:lng,name:label.split(" ").pop(),label});
+    });
+  }
+  setTimeout(()=>pmap.invalidateSize(),50);
+  pending=center; $("#pickLabel").textContent=center?center.label:"아직 없음"; $("#confirm").disabled=!center;
+  if(center) setPending(center);
+  renderCands(loadRecent(),"🕘 최근 위치");
+  $("#maddr").value=""; setTimeout(()=>$("#maddr").focus(),60);
+}
+function closePicker(){ $("#modal").classList.add("hidden"); }
+
+$("#locBtn").addEventListener("click",openPicker);
+$("#mclose").addEventListener("click",closePicker);
+$("#modal").addEventListener("click",e=>{ if(e.target.id==="modal") closePicker(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closePicker(); });
+$("#mform").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const q=$("#maddr").value.trim(); if(!q) return;
+  $("#cands").innerHTML=`<div class="lbl">🔎 검색 중...</div>`;
+  try{
+    const list=await searchLocations(q);
+    if(!list.length){ $("#cands").innerHTML=`<div class="lbl">검색 결과가 없어요. 다른 이름으로 검색하거나 지도를 눌러주세요.</div>`; return; }
+    setPending(list[0]); renderCands(list,`검색 결과 ${list.length}곳 — 맞는 곳을 골라주세요`);
+  }catch(err){ $("#cands").innerHTML=`<div class="lbl">⚠️ 주소 검색 실패: ${esc(err.message)}</div>`; }
+});
+$("#cands").addEventListener("click",e=>{
+  const b=e.target.closest(".cand"); if(!b) return;
+  setPending(cands[+b.dataset.k]);
+  $("#cands").querySelectorAll(".cand").forEach(x=>x.classList.toggle("on",x===b));
+});
+$("#gps").addEventListener("click",()=>{
+  if(!navigator.geolocation){ $("#cands").innerHTML=`<div class="lbl">이 브라우저는 위치 기능을 지원하지 않아요.</div>`; return; }
+  $("#cands").innerHTML=`<div class="lbl">📡 현재 위치 확인 중...</div>`;
+  navigator.geolocation.getCurrentPosition(async p=>{
+    const lat=p.coords.latitude, lon=p.coords.longitude, label=await reverseLabel(lat,lon);
+    setPending({lat,lon,name:"현재 위치",label},16); renderCands([],"");
+  },err=>{ $("#cands").innerHTML=`<div class="lbl">⚠️ 위치를 가져오지 못했어요 (${err.code===1?"권한 거부됨":"확인 실패"}). 주소로 검색해 주세요.</div>`; },
+  {enableHighAccuracy:true,timeout:10000});
+});
+$("#confirm").addEventListener("click",()=>{
+  if(!pending||pending.label==="주소 확인 중...") return;
+  center=pending; $("#locLabel").textContent=center.label;
+  saveRecent(center);
+  try{ localStorage.setItem("matjip-loc",JSON.stringify(center)); }catch(_){}
+  closePicker(); explore();
 });
 
 $("#cats").addEventListener("click",e=>{
@@ -295,7 +473,8 @@ $("#sightList").addEventListener("click",e=>{
   window.scrollTo({top:$("#map").getBoundingClientRect().top+scrollY-20,behavior:"smooth"});
 });
 
-try{ const saved=localStorage.getItem("matjip-addr"); if(saved) $("#addr").value=saved; }catch(_){}
+try{ const saved=JSON.parse(localStorage.getItem("matjip-loc")); if(saved){ center=saved; $("#locLabel").textContent=saved.label; } }catch(_){}
+if(!center) openPicker();
 </script>
 </body>
 </html>
