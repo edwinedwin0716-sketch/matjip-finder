@@ -1,0 +1,16 @@
+{
+  "name": "우리동네 맛·볼거리",
+  "short_name": "맛·볼거리",
+  "description": "주소만 넣으면 주변 음식점과 볼거리를 모아 오늘 먹을 곳을 추천해 줘요.",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a1430",
+  "theme_color": "#0a1430",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

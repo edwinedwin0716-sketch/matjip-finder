@@ -2,7 +2,15 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a1430">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="맛·볼거리">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>우리동네 맛·볼거리</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -15,7 +23,7 @@
   *{box-sizing:border-box}
   body{margin:0;background:linear-gradient(180deg,var(--bg) 0%,#071026 100%);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;min-height:100vh}
-  .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 60px}
+  .wrap{max-width:1100px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(60px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
   header h1{margin:0 0 4px;font-size:28px;letter-spacing:-.5px}
   header h1 span{color:var(--red)}
   header p{margin:0 0 20px;color:var(--muted)}
@@ -475,6 +483,8 @@ $("#sightList").addEventListener("click",e=>{
 
 try{ const saved=JSON.parse(localStorage.getItem("matjip-loc")); if(saved){ center=saved; $("#locLabel").textContent=saved.label; } }catch(_){}
 if(!center) openPicker();
+// 앱으로 설치(홈 화면·Dock 추가)하면 인터넷이 잠깐 끊겨도 화면이 열리게 한다
+if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>
