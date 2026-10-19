@@ -8,8 +8,8 @@ using Microsoft.Win32;
 
 [assembly: AssemblyTitle("맛·볼거리")]
 [assembly: AssemblyProduct("우리동네 맛·볼거리")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]
 
 static class Launcher {
     const string Url = "https://edwinedwin0716-sketch.github.io/matjip-finder/";
@@ -25,6 +25,9 @@ static class Launcher {
                 try { File.Copy(self, exe, true); } catch (IOException) { }
                 Shortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "맛·볼거리.lnk"), exe);
                 Shortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "맛·볼거리.lnk"), exe);
+                Open();
+                InstallCleanup.OfferRemoveDownloads(Caption, "맛볼거리", new[] { "맛볼거리.exe", "설치 및 사용법.txt" }, @"^Matjip-Windows-[0-9.]+( \(\d+\))?\.zip$", Dir);
+                return 0;
             }
             Open();
             return 0;

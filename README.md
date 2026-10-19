@@ -6,7 +6,7 @@
 | 기기 | 받기 | 설치 |
 |---|---|---|
 | 📱 안드로이드 | [![안드로이드 앱 받기](https://img.shields.io/badge/%EC%95%88%EB%93%9C%EB%A1%9C%EC%9D%B4%EB%93%9C%20%EC%95%B1%20%EB%B0%9B%EA%B8%B0-E63946?style=for-the-badge&logo=android&logoColor=white)](https://github.com/edwinedwin0716-sketch/matjip-finder/raw/main/download/Matjip.apk) | 받은 apk를 눌러 설치 ("출처를 알 수 없는 앱" 허용) |
-| 💻 Windows 10/11 | [![Windows 받기](https://img.shields.io/badge/Windows%20%EB%B0%9B%EA%B8%B0-0078D4?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/edwinedwin0716-sketch/matjip-finder/raw/main/download/Matjip-Windows-1.0.zip) | 압축 풀기 → `맛볼거리.exe` (파란 창은 추가 정보 → 실행) |
+| 💻 Windows 10/11 | [![Windows 받기](https://img.shields.io/badge/Windows%20%EB%B0%9B%EA%B8%B0-0078D4?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/edwinedwin0716-sketch/matjip-finder/raw/main/download/Matjip-Windows-1.0.1.zip) | 압축 풀기 → `맛볼거리.exe` (파란 창은 추가 정보 → 실행) |
 | 📱 아이폰 · 아이패드 | [![아이폰에서 열기](https://img.shields.io/badge/%EC%95%84%EC%9D%B4%ED%8F%B0%EC%97%90%EC%84%9C%20%EC%97%B4%EA%B8%B0-111111?style=for-the-badge&logo=apple&logoColor=white)](https://edwinedwin0716-sketch.github.io/matjip-finder/) | 사파리로 열기 → 공유(□↑) → **홈 화면에 추가** |
 | 🍎 Mac | [![Mac에서 열기](https://img.shields.io/badge/Mac%EC%97%90%EC%84%9C%20%EC%97%B4%EA%B8%B0-333333?style=for-the-badge&logo=apple&logoColor=white)](https://edwinedwin0716-sketch.github.io/matjip-finder/) | 사파리로 열기 → 메뉴 **파일 → Dock에 추가** (macOS 14 이상) |
 
